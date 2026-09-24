@@ -149,16 +149,17 @@
 .flower-gift {
   position: relative;
   isolation: isolate;
-  background:
-    radial-gradient(ellipse at 50% 0%, rgba(255, 250, 219, .96), transparent 48rem),
-    linear-gradient(180deg, #f7f1d9 0%, #e4e9c8 58%, #ccd9aa 100%);
+  background: #fff;
 }
 
 .flower-garden {
   position: relative;
-  min-height: 100dvh;
-  padding: clamp(22px, 4vw, 48px) clamp(10px, 3vw, 36px) 54px;
-  overflow: hidden;
+  padding: clamp(18px, 3vw, 34px) clamp(10px, 3vw, 36px) 0;
+  overflow: visible;
+}
+
+.flower-garden--lower {
+  padding-top: 0;
 }
 
 .flower-field {
@@ -170,18 +171,6 @@
   width: min(100%, 1120px);
   margin: 0 auto;
   isolation: isolate;
-}
-
-.flower-field::before {
-  position: absolute;
-  z-index: -1;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 17%;
-  content: '';
-  background: linear-gradient(180deg, transparent, rgba(111, 139, 76, .22));
-  pointer-events: none;
 }
 
 .meadow-flower {
@@ -205,9 +194,21 @@
   transform: translateX(-50%);
 }
 
+.meadow-extra-foliage {
+  position: absolute;
+  z-index: 1;
+  bottom: -8px;
+  left: calc(50% - 63px);
+  width: 82px;
+  height: 158px;
+  opacity: .96;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 3px rgba(55, 91, 43, .1));
+}
+
 .meadow-blossom {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   flex: none;
   max-width: 100%;
   overflow: visible;
@@ -216,14 +217,30 @@
   animation: flower-sway 4.6s ease-in-out infinite;
 }
 
+.meadow-bow {
+  position: absolute;
+  z-index: 3;
+  top: 93px;
+  left: calc(50% + 8px);
+  width: 34px;
+  height: 25px;
+  transform: rotate(8deg);
+  filter: drop-shadow(0 2px 2px rgba(125, 91, 19, .18));
+}
+
+.yellow-bow {
+  display: block;
+  overflow: visible;
+}
+
 .letter-discovery {
   position: relative;
   display: flex;
-  min-height: 300px;
+  min-height: 320px;
   justify-content: center;
   align-items: center;
-  padding: 22px 18px 76px;
-  background: linear-gradient(180deg, rgba(193, 211, 152, .28), rgba(244, 235, 204, .96));
+  padding: 34px 18px;
+  background: #fff;
 }
 
 .envelope-button {
@@ -285,10 +302,25 @@
 
 .letter-unfold {
   width: min(100%, 670px);
-  border: 1px solid rgba(166, 125, 70, .24);
+  border: 1px solid rgba(166, 125, 70, .3);
   background-image:
     radial-gradient(ellipse at 10% 0%, rgba(252, 227, 174, .3), transparent 42%),
     linear-gradient(135deg, #fffaf0, #fff5df);
+  box-shadow: 0 24px 65px rgba(88, 69, 34, .16), 0 4px 16px rgba(88, 69, 34, .07);
+}
+
+.gift-footer {
+  display: grid;
+  min-height: 64px;
+  place-items: center;
+  padding: 16px 20px calc(16px + env(safe-area-inset-bottom));
+  background: #f6c83e;
+  color: #594315;
+  font-family: var(--app-font-sans);
+  font-size: .95rem;
+  font-weight: 800;
+  letter-spacing: .045em;
+  text-align: center;
 }
 
 @keyframes meadow-rise {
@@ -311,10 +343,12 @@
 }
 
 @media (max-width: 620px) {
-  .flower-garden { padding: 18px 8px 34px; }
+  .flower-garden { padding: 18px 8px 0; }
   .flower-field { grid-template-columns: repeat(5, minmax(0, 1fr)); grid-auto-rows: 126px; }
   .meadow-stem { width: 88px; height: 142px; bottom: -13px; }
-  .letter-discovery { min-height: 260px; padding-bottom: 54px; }
+  .meadow-extra-foliage { width: 70px; height: 136px; left: calc(50% - 54px); }
+  .meadow-bow { top: 76px; left: calc(50% + 5px); width: 30px; height: 22px; }
+  .letter-discovery { min-height: 290px; padding: 24px 12px; }
 }
 
 @media (max-width: 380px) {

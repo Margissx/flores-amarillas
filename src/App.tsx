@@ -56,8 +56,19 @@ function Flower({ className = '', delay = 0, size = 112 }: { className?: string;
   );
 }
 
-function FlowerField() {
-  const flowers = Array.from({ length: 72 }, (_, index) => {
+function YellowBow({ className = '' }: { className?: string }) {
+  return (
+    <svg className={`yellow-bow ${className}`} viewBox="0 0 48 34" aria-hidden="true">
+      <path d="M23 15C16 3 4 4 6 14c1 6 9 8 17 3Zm2 0c7-12 19-11 17-1-1 6-9 8-17 3Z" fill="#f6c934" stroke="#dda816" strokeWidth="1.5" />
+      <path d="m20 18-7 13 11-6 1-10m4 3 7 13-11-6-1-10" fill="#f2bf27" stroke="#dda816" strokeWidth="1.5" strokeLinejoin="round" />
+      <ellipse cx="24" cy="16" rx="4.5" ry="4" fill="#ffe16a" stroke="#d99c12" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
+function FlowerField({ start, count }: { start: number; count: number }) {
+  const flowers = Array.from({ length: count }, (_, offset) => {
+    const index = start + offset;
     const delay = (index % 12) * 0.07;
     const size = 70 + ((index * 7) % 5) * 7;
     const lean = ((index * 19) % 13) - 6;
@@ -82,13 +93,25 @@ function FlowerField() {
           <path d="M58 127 C38 108 26 106 17 107 C27 124 41 132 59 136Z" fill="#819a5d" />
           <path d="M62 151 C78 133 91 131 102 133 C92 149 78 157 61 160Z" fill="#718c51" />
         </svg>
+        {index % 4 === 0 && (
+          <svg className="meadow-extra-foliage" viewBox="0 0 90 180" aria-hidden="true">
+            <path d="M45 178C39 139 47 108 45 48" fill="none" stroke="#6f9250" strokeWidth="3.5" strokeLinecap="round" />
+            <path d="M44 151C28 138 18 140 11 143C19 155 29 159 44 156Z" fill="#789a55" />
+            <path d="M45 137C61 123 73 124 81 128C74 141 63 147 46 144Z" fill="#88a760" />
+            <path d="M44 119C29 106 20 107 13 110C20 122 29 126 44 124Z" fill="#83a05a" />
+            <path d="M46 102C60 89 70 90 77 94C70 106 61 111 46 108Z" fill="#718e4d" />
+            <path d="M44 83C31 72 23 72 17 75C23 86 32 90 44 88Z" fill="#88a760" />
+            <path d="M46 66C57 56 65 57 71 60C65 70 57 74 46 72Z" fill="#789a55" />
+          </svg>
+        )}
         <Flower className="meadow-blossom" size={size} delay={delay} />
+        {index % 5 === 2 && <YellowBow className="meadow-bow" />}
       </div>
     );
   });
 
   return (
-    <div className="flower-field" role="img" aria-label="Campo de flores amarillas">
+    <div className="flower-field" role="img" aria-label="Campo de flores amarillas y plantas verdes">
       {flowers}
     </div>
   );
@@ -158,9 +181,13 @@ function Home() {
   return (
     <main className="flower-gift min-h-[100dvh] overflow-hidden">
       <section className="flower-garden" aria-label="Flores amarillas">
-        <FlowerField />
+        <FlowerField start={0} count={36} />
       </section>
       <GiftScene />
+      <section className="flower-garden flower-garden--lower" aria-label="Más flores amarillas">
+        <FlowerField start={36} count={36} />
+      </section>
+      <footer className="gift-footer">Hecho para ti</footer>
     </main>
   );
 }
