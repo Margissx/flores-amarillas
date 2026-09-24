@@ -146,6 +146,181 @@
 .bouquet-shadow { filter: drop-shadow(0 22px 19px rgba(73, 52, 28, .18)); }
 .torn-edge { clip-path: polygon(0 2%, 5% 0, 11% 2%, 18% 0, 25% 2%, 34% 0, 42% 2%, 50% 0, 58% 2%, 67% 0, 74% 2%, 83% 0, 91% 2%, 100% 0, 99% 97%, 91% 100%, 83% 98%, 75% 100%, 67% 98%, 58% 100%, 50% 98%, 41% 100%, 32% 98%, 24% 100%, 16% 98%, 8% 100%, 0 97%); }
 
+.flower-gift {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255, 250, 219, .96), transparent 48rem),
+    linear-gradient(180deg, #f7f1d9 0%, #e4e9c8 58%, #ccd9aa 100%);
+}
+
+.flower-garden {
+  position: relative;
+  min-height: 100dvh;
+  padding: clamp(22px, 4vw, 48px) clamp(10px, 3vw, 36px) 54px;
+  overflow: hidden;
+}
+
+.flower-field {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  grid-auto-rows: clamp(118px, 14vw, 158px);
+  align-items: end;
+  width: min(100%, 1120px);
+  margin: 0 auto;
+  isolation: isolate;
+}
+
+.flower-field::before {
+  position: absolute;
+  z-index: -1;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 17%;
+  content: '';
+  background: linear-gradient(180deg, transparent, rgba(111, 139, 76, .22));
+  pointer-events: none;
+}
+
+.meadow-flower {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  height: 100%;
+  justify-content: center;
+  align-items: flex-start;
+  transform-origin: bottom center;
+  animation: meadow-rise .8s cubic-bezier(.22,.8,.28,1) both;
+}
+
+.meadow-stem {
+  position: absolute;
+  z-index: 0;
+  bottom: -17px;
+  left: 50%;
+  width: clamp(82px, 10vw, 120px);
+  height: clamp(132px, 16vw, 190px);
+  transform: translateX(-50%);
+}
+
+.meadow-blossom {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  max-width: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 5px 5px rgba(105, 78, 29, .13));
+  transform-origin: 50% 90%;
+  animation: flower-sway 4.6s ease-in-out infinite;
+}
+
+.letter-discovery {
+  position: relative;
+  display: flex;
+  min-height: 300px;
+  justify-content: center;
+  align-items: center;
+  padding: 22px 18px 76px;
+  background: linear-gradient(180deg, rgba(193, 211, 152, .28), rgba(244, 235, 204, .96));
+}
+
+.envelope-button {
+  display: grid;
+  width: 230px;
+  height: 180px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 22px;
+  background: transparent;
+  cursor: pointer;
+  animation: envelope-float 3.5s ease-in-out infinite;
+}
+
+.envelope {
+  position: relative;
+  display: block;
+  width: min(190px, 70vw);
+  height: 128px;
+  overflow: hidden;
+  border: 1px solid rgba(151, 101, 55, .35);
+  border-radius: 8px;
+  background: linear-gradient(145deg, #f8e4bb, #efd09d);
+  box-shadow: 0 18px 30px rgba(81, 74, 38, .2), inset 0 1px rgba(255, 255, 255, .7);
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+
+.envelope-button:hover .envelope {
+  transform: translateY(-5px) rotate(-2deg);
+  box-shadow: 0 24px 36px rgba(81, 74, 38, .24), inset 0 1px rgba(255, 255, 255, .7);
+}
+
+.envelope-flap {
+  position: absolute;
+  z-index: 2;
+  inset: 0 0 auto;
+  height: 78px;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  background: linear-gradient(180deg, #f7dfae, #e7c18b);
+  filter: drop-shadow(0 2px 2px rgba(117, 77, 36, .14));
+}
+
+.envelope-fold {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  clip-path: polygon(0 0, 50% 54%, 100% 0, 100% 100%, 0 100%);
+  background: linear-gradient(145deg, #f1d4a4, #eac894);
+}
+
+.envelope-seal {
+  position: absolute;
+  z-index: 3;
+  top: 51%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.letter-unfold {
+  width: min(100%, 670px);
+  border: 1px solid rgba(166, 125, 70, .24);
+  background-image:
+    radial-gradient(ellipse at 10% 0%, rgba(252, 227, 174, .3), transparent 42%),
+    linear-gradient(135deg, #fffaf0, #fff5df);
+}
+
+@keyframes meadow-rise {
+  from { opacity: 0; translate: 0 18px; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+@keyframes flower-sway {
+  0%, 100% { rotate: -2deg; }
+  50% { rotate: 2deg; }
+}
+
+@keyframes envelope-float {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -8px; }
+}
+
+@media (max-width: 900px) {
+  .flower-field { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+}
+
+@media (max-width: 620px) {
+  .flower-garden { padding: 18px 8px 34px; }
+  .flower-field { grid-template-columns: repeat(5, minmax(0, 1fr)); grid-auto-rows: 126px; }
+  .meadow-stem { width: 88px; height: 142px; bottom: -13px; }
+  .letter-discovery { min-height: 260px; padding-bottom: 54px; }
+}
+
+@media (max-width: 380px) {
+  .flower-field { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .001ms !important; }
 }
