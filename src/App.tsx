@@ -33,6 +33,8 @@ const DEFAULT_LETTER: LetterFields = {
   signature: 'Con todo mi cariño',
 };
 
+const PUBLIC_LETTER_URL = 'https://margissx.github.io/flores-amarillas/';
+
 function getInitialLetter() {
   const params = new URLSearchParams(window.location.search);
   return {
@@ -55,7 +57,7 @@ function fileNameFor(title: string) {
 }
 
 function sharedLetterUrl(letter: LetterFields) {
-  const url = new URL(window.location.href);
+  const url = new URL(PUBLIC_LETTER_URL);
   url.searchParams.set('name', letter.name);
   url.searchParams.set('title', letter.title);
   url.searchParams.set('message', letter.message);
