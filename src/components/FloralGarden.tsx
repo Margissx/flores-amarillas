@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
 import './FloralGarden.css';
 
-type FlowerKind = 'sunflower' | 'daisy' | 'ranunculus' | 'rose' | 'chrysanthemum' | 'wildflower' | 'tiny';
+export type FlowerKind = 'sunflower' | 'daisy' | 'ranunculus' | 'rose' | 'chrysanthemum' | 'wildflower' | 'tiny';
 type GardenDepth = 'deep' | 'middle' | 'near';
 
 type BloomSpec = {
@@ -170,7 +170,7 @@ const sunflowerPetals = Array.from({ length: 16 }, (_, index) => index * 22.5);
 const daisyPetals = Array.from({ length: 10 }, (_, index) => index * 36);
 const chrysanthemumPetals = Array.from({ length: 22 }, (_, index) => index * (360 / 22));
 
-function FlowerSvg({ kind }: { kind: FlowerKind }) {
+export function FlowerSvg({ kind }: { kind: FlowerKind }) {
   if (kind === 'sunflower') {
     return (
       <svg className="floral-garden__flower" viewBox="0 0 120 120" aria-hidden="true">

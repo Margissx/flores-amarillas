@@ -4,6 +4,7 @@ import { FileImage, FileText, Image as ImageIcon, MailOpen, Pencil, Share2, X } 
 import { useForm, type UseFormReturn } from 'react-hook-form';
 import { ErrorBoundary } from '@/components/error-boundary';
 import FloralGarden from '@/components/FloralGarden';
+import FloatingFlowers from '@/components/FloatingFlowers';
 import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -205,7 +206,7 @@ function Home() {
   const watchedLetter = form.watch();
   const letter = { ...DEFAULT_LETTER, ...watchedLetter };
   const letterRef = useRef<HTMLDivElement>(null);
-  const [opened, setOpened] = useState(true);
+  const [opened, setOpened] = useState(false);
   const [customizing, setCustomizing] = useState(false);
   const [busy, setBusy] = useState<'png' | 'jpg' | 'pdf' | 'share' | null>(null);
   const [announcement, setAnnouncement] = useState('');
@@ -296,6 +297,7 @@ function Home() {
   return (
     <main className="romantic-experience" data-open={opened ? 'true' : 'false'}>
       <FloralGarden open={opened} />
+      <FloatingFlowers />
       <section className="letter-stage" aria-label="Carta romántica rodeada de flores">
         <div className="letter-composition">
           <div

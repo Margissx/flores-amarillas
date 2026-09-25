@@ -1,0 +1,79 @@
+.floating-flowers {
+  position: fixed;
+  z-index: 5;
+  inset: 0;
+  overflow: clip;
+  pointer-events: none;
+}
+
+.floating-flower {
+  position: absolute;
+  display: grid;
+  width: var(--floating-flower-size);
+  height: var(--floating-flower-size);
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: grab;
+  pointer-events: auto;
+  touch-action: none;
+  transform: translate(-50%, -50%);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.floating-flower:hover .floating-flower__motion {
+  filter: drop-shadow(0 9px 13px rgba(81, 66, 28, 0.28)) brightness(1.04);
+}
+
+.floating-flower:active,
+.floating-flower--dragging {
+  cursor: grabbing;
+}
+
+.floating-flower--dragging {
+  z-index: 20;
+}
+
+.floating-flower__motion {
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 7px 9px rgba(81, 66, 28, 0.2));
+  animation: floating-flower-drift 5.8s ease-in-out var(--floating-flower-delay) infinite;
+}
+
+.floating-flower--dragging .floating-flower__motion {
+  animation: none;
+  transform: rotate(var(--floating-flower-rotation));
+}
+
+.floating-flower__motion .floral-garden__flower {
+  width: 90%;
+  height: 90%;
+}
+
+@keyframes floating-flower-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(var(--floating-flower-rotation));
+  }
+  50% {
+    transform: translate3d(2px, -9px, 0) rotate(calc(var(--floating-flower-rotation) + 3deg));
+  }
+}
+
+@media (max-width: 700px) {
+  .floating-flower {
+    width: calc(var(--floating-flower-size) * 0.82);
+    height: calc(var(--floating-flower-size) * 0.82);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .floating-flower__motion {
+    animation-duration: 0.001ms;
+    animation-iteration-count: 1;
+  }
+}
