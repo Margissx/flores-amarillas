@@ -1,0 +1,367 @@
+.floral-garden {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  isolation: isolate;
+  pointer-events: none;
+  contain: layout paint;
+  background:
+    radial-gradient(ellipse at 50% 50%, rgba(255, 246, 198, 0.22) 0%, rgba(246, 211, 94, 0.08) 43%, rgba(84, 111, 54, 0.18) 100%),
+    #c0d28c;
+}
+
+.floral-garden::before,
+.floral-garden::after {
+  position: absolute;
+  inset: -8%;
+  content: '';
+  pointer-events: none;
+}
+
+.floral-garden::before {
+  z-index: -2;
+  opacity: 0.32;
+  background:
+    radial-gradient(ellipse at 12% 45%, rgba(54, 98, 54, 0.48) 0 2%, transparent 14%),
+    radial-gradient(ellipse at 86% 66%, rgba(48, 90, 48, 0.44) 0 2%, transparent 16%),
+    radial-gradient(ellipse at 50% 103%, rgba(48, 86, 47, 0.5) 0 3%, transparent 25%);
+  transform: scale(1.08);
+}
+
+.floral-garden::after {
+  z-index: 8;
+  opacity: 0.18;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(47, 76, 41, 0.42) 100%);
+  mix-blend-mode: multiply;
+}
+
+.floral-garden__wash {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 54%, rgba(255, 248, 207, 0.29), transparent 39%),
+    linear-gradient(112deg, rgba(249, 216, 84, 0.12), transparent 23%, transparent 77%, rgba(239, 191, 52, 0.13));
+}
+
+.floral-garden__layer,
+.floral-garden__petal-field,
+.floral-garden__foliage-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.floral-garden__foliage-layer {
+  z-index: 0;
+}
+
+.floral-garden__foliage {
+  position: absolute;
+  top: var(--foliage-y);
+  left: var(--foliage-x);
+  display: block;
+  width: var(--foliage-size);
+  height: var(--foliage-size);
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(var(--foliage-rotate)) scale(0.35);
+  transform-origin: 50% 63%;
+  filter: drop-shadow(0 8px 7px rgba(45, 76, 33, 0.14));
+  animation: foliage-in 1.15s cubic-bezier(0.18, 0.82, 0.26, 1) var(--foliage-delay) both;
+}
+
+.floral-garden__foliage--deep {
+  opacity: 0.85;
+  filter: saturate(0.82) drop-shadow(0 7px 7px rgba(45, 76, 33, 0.1));
+}
+
+.floral-garden__foliage--near {
+  filter: saturate(1.08) drop-shadow(0 9px 8px rgba(45, 76, 33, 0.18));
+}
+
+.floral-garden__foliage-motion {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 63%;
+  animation: foliage-breathe 8.4s ease-in-out calc(var(--foliage-delay) + 0.6s) infinite;
+}
+
+.floral-garden__foliage-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.floral-garden__layer {
+  transform-origin: center;
+  will-change: transform;
+}
+
+.floral-garden__layer--deep {
+  z-index: 1;
+  opacity: 0.8;
+  transform: scale(1.07);
+  animation: floral-parallax-deep 18s ease-in-out infinite alternate;
+}
+
+.floral-garden__layer--middle {
+  z-index: 2;
+  animation: floral-parallax-middle 15s ease-in-out infinite alternate;
+}
+
+.floral-garden__layer--near {
+  z-index: 3;
+  animation: floral-parallax-near 11s ease-in-out infinite alternate;
+}
+
+.floral-garden__bloom {
+  position: absolute;
+  top: var(--bloom-y);
+  left: var(--bloom-x);
+  display: block;
+  width: var(--bloom-size);
+  height: var(--bloom-size);
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(var(--bloom-rotate));
+  transform-origin: 50% 67%;
+  filter: drop-shadow(0 8px 7px rgba(45, 76, 33, 0.19));
+  animation: floral-bloom-in 1.18s cubic-bezier(0.18, 0.82, 0.26, 1) var(--bloom-delay) both;
+}
+
+.floral-garden__bloom--deep {
+  filter: saturate(0.86) drop-shadow(0 7px 7px rgba(45, 76, 33, 0.14));
+}
+
+.floral-garden__bloom--near {
+  filter: saturate(1.04) drop-shadow(0 9px 8px rgba(45, 76, 33, 0.22));
+}
+
+.floral-garden__bloom-motion {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 67%;
+  animation: floral-sway var(--bloom-sway) ease-in-out var(--bloom-delay) infinite;
+}
+
+.floral-garden__bloom-breath {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  transform-origin: 50% 60%;
+  animation: floral-breath 7.7s ease-in-out calc(var(--bloom-delay) + 0.9s) infinite;
+}
+
+.floral-garden__flower {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  left: 50%;
+  display: block;
+  width: 76%;
+  height: 76%;
+  overflow: visible;
+  transform: translateX(-50%);
+}
+
+.floral-garden__leaves {
+  position: absolute;
+  z-index: 1;
+  top: 31%;
+  left: 50%;
+  width: 130%;
+  height: 96%;
+  overflow: visible;
+  transform: translateX(-50%) rotate(var(--leaf-tilt));
+  transform-origin: 50% 91%;
+  animation: floral-leaf-flutter 6.4s ease-in-out calc(var(--bloom-delay) + 0.4s) infinite;
+}
+
+.floral-garden__petal-field {
+  z-index: 5;
+  animation: floral-petal-depth 17s ease-in-out infinite alternate;
+}
+
+.floral-garden__petal {
+  position: absolute;
+  top: var(--petal-y);
+  left: var(--petal-x);
+  display: block;
+  width: var(--petal-size);
+  height: calc(var(--petal-size) * 1.7);
+  border-radius: 78% 22% 72% 28%;
+  background: linear-gradient(145deg, #fae27b 0%, #e8ad28 100%);
+  box-shadow: inset 1px 0 rgba(255, 246, 167, 0.6);
+  opacity: 0;
+  transform: rotate(var(--petal-rotate));
+  animation: floral-petal-drift var(--petal-duration) ease-in-out var(--petal-delay) infinite;
+}
+
+.floral-garden--open .floral-garden__bloom--near-card .floral-garden__bloom-motion {
+  animation:
+    floral-sway var(--bloom-sway) ease-in-out var(--bloom-delay) infinite,
+    floral-open-nudge 1.05s cubic-bezier(0.22, 0.8, 0.28, 1) both;
+}
+
+.floral-garden--open .floral-garden__petal:nth-child(3n) {
+  animation-duration: calc(var(--petal-duration) + 2s);
+}
+
+@keyframes floral-bloom-in {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--bloom-rotate)) scale(0.2);
+  }
+  72% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(calc(var(--bloom-rotate) - 3deg)) scale(1.035);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--bloom-rotate)) scale(1);
+  }
+}
+
+@keyframes foliage-in {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--foliage-rotate)) scale(0.35);
+  }
+  78% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(calc(var(--foliage-rotate) - 2deg)) scale(1.035);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--foliage-rotate)) scale(1);
+  }
+}
+
+@keyframes foliage-breathe {
+  0%,
+  100% {
+    transform: scale(0.985) rotate(-0.5deg);
+  }
+  50% {
+    transform: scale(1.018) rotate(1deg);
+  }
+}
+
+@keyframes floral-sway {
+  0%,
+  100% {
+    transform: rotate(-1.5deg);
+  }
+  50% {
+    transform: rotate(2.4deg);
+  }
+}
+
+@keyframes floral-breath {
+  0%,
+  100% {
+    transform: scale(0.985);
+  }
+  48% {
+    transform: scale(1.018);
+  }
+}
+
+@keyframes floral-leaf-flutter {
+  0%,
+  100% {
+    transform: translateX(-50%) rotate(var(--leaf-tilt)) skewX(-1deg);
+  }
+  50% {
+    transform: translateX(-50%) rotate(calc(var(--leaf-tilt) + 2.5deg)) skewX(1deg);
+  }
+}
+
+@keyframes floral-parallax-deep {
+  from {
+    transform: scale(1.07) translate3d(-0.4%, 0.2%, 0);
+  }
+  to {
+    transform: scale(1.08) translate3d(0.5%, -0.35%, 0);
+  }
+}
+
+@keyframes floral-parallax-middle {
+  from {
+    transform: translate3d(0.2%, -0.15%, 0);
+  }
+  to {
+    transform: translate3d(-0.3%, 0.25%, 0);
+  }
+}
+
+@keyframes floral-parallax-near {
+  from {
+    transform: scale(1.015) translate3d(-0.25%, 0.15%, 0);
+  }
+  to {
+    transform: scale(1.018) translate3d(0.35%, -0.25%, 0);
+  }
+}
+
+@keyframes floral-petal-depth {
+  from {
+    transform: translate3d(-0.25%, 0, 0);
+  }
+  to {
+    transform: translate3d(0.3%, -0.3%, 0);
+  }
+}
+
+@keyframes floral-petal-drift {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -10px, 0) rotate(var(--petal-rotate)) scale(0.72);
+  }
+  13% {
+    opacity: 0.78;
+  }
+  78% {
+    opacity: 0.54;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--petal-drift), 110px, 0) rotate(calc(var(--petal-rotate) + 130deg)) scale(0.9);
+  }
+}
+
+@keyframes floral-open-nudge {
+  0%,
+  100% {
+    transform: rotate(0deg) translate3d(0, 0, 0);
+  }
+  45% {
+    transform: rotate(-1.7deg) translate3d(0, -3px, 0);
+  }
+}
+
+@media (max-width: 700px) {
+  .floral-garden__bloom {
+    width: clamp(48px, calc(var(--bloom-size) * 0.82), var(--bloom-size));
+    height: clamp(48px, calc(var(--bloom-size) * 0.82), var(--bloom-size));
+  }
+
+  .floral-garden__bloom--deep {
+    opacity: 0.9;
+  }
+
+  .floral-garden__petal {
+    transform: scale(0.76) rotate(var(--petal-rotate));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .floral-garden *,
+  .floral-garden::before,
+  .floral-garden::after {
+    animation-duration: 0.001ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+  }
+}

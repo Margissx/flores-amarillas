@@ -1,193 +1,391 @@
-import { type ReactNode, useEffect, useRef, useState } from 'react';
+import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { FileImage, FileText, Image as ImageIcon, MailOpen, Pencil, Share2, X } from 'lucide-react';
+import { useForm, type UseFormReturn } from 'react-hook-form';
 import { ErrorBoundary } from '@/components/error-boundary';
+import FloralGarden from '@/components/FloralGarden';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { captureLetterCard, downloadBlob, makeLetterPdf } from '@/lib/letter-export';
 import NotFound from '@/pages/not-found';
 import { Route, Switch, useLocation, Router as WouterRouter } from 'wouter';
 
 const queryClient = new QueryClient();
 
-// Personaliza solo estas líneas antes de compartir tu sorpresa.
-const GIFT = {
-  recipient: 'mi persona favorita',
-  sender: 'Con todo mi cariño',
-  greeting: 'Para ti, que haces bonito cualquier día',
-  message: [
-    'Hay personas que llegan y cambian el color de los días. Tú eres eso para mí: una pequeña certeza luminosa en medio de todo.',
-    'Te regalo estas flores amarillas porque me recuerdan a tu forma de estar en el mundo: cálida, valiente y capaz de hacer que hasta lo cotidiano guarde un poco de magia.',
-    'Gracias por existir tan cerca de mi corazón. Ojalá cada vez que mires este ramo recuerdes que hay alguien pensando en ti con una sonrisa enorme.',
-  ],
-  closing: 'Que nunca te falten motivos para florecer.',
+type LetterFields = {
+  name: string;
+  title: string;
+  message: string;
+  signature: string;
 };
 
-function Flower({ className = '', delay = 0, size = 112 }: { className?: string; delay?: number; size?: number }) {
-  const petals = Array.from({ length: 12 }, (_, index) => {
-    const rotation = index * 30;
-    return (
-      <ellipse
-        key={rotation}
-        cx="60"
-        cy="44"
-        rx="14"
-        ry="31"
-        transform={`rotate(${rotation} 60 60)`}
-        fill={index % 3 === 0 ? '#f8c83e' : '#f4b91e'}
-      />
-    );
-  });
+const DEFAULT_LETTER: LetterFields = {
+  name: 'Mi persona favorita',
+  title: 'Para ti, que haces bonito cualquier día',
+  message: [
+    'Hay personas que hacen más luminosos los días con solo estar. Tú eres una de ellas: cálida, valiente y capaz de convertir lo cotidiano en algo bonito.',
+    'Te regalo estas flores amarillas para recordarte cuánto agradezco que formes parte de mi vida. Que nunca te falten razones para sonreír y seguir floreciendo.',
+  ].join('\n\n'),
+  signature: 'Con todo mi cariño',
+};
 
-  return (
-    <svg
-      aria-hidden="true"
-      className={`flower ${className}`}
-      style={{ width: size, height: size, animationDelay: `${delay}s` }}
-      viewBox="0 0 120 120"
-    >
-      <g style={{ transformOrigin: '60px 60px', animation: `petal-bloom .75s ${delay}s cubic-bezier(.22,.8,.28,1) both` }}>
-        {petals}
-        <circle cx="60" cy="60" r="18" fill="#8b5a24" />
-        <circle cx="60" cy="60" r="10" fill="#c7862d" />
-        <circle cx="55" cy="55" r="2.4" fill="#f4d46c" />
-        <circle cx="66" cy="63" r="2.2" fill="#f4d46c" />
-        <circle cx="62" cy="52" r="1.8" fill="#f4d46c" />
-      </g>
-    </svg>
-  );
+function getInitialLetter() {
+  const params = new URLSearchParams(window.location.search);
+  return {
+    name: (params.get('name') ?? DEFAULT_LETTER.name).slice(0, 80),
+    title: (params.get('title') ?? DEFAULT_LETTER.title).slice(0, 90),
+    message: (params.get('message') ?? DEFAULT_LETTER.message).slice(0, 2_000),
+    signature: (params.get('signature') ?? DEFAULT_LETTER.signature).slice(0, 80),
+  };
 }
 
-function YellowBow({ className = '' }: { className?: string }) {
-  return (
-    <svg className={`yellow-bow ${className}`} viewBox="0 0 48 34" aria-hidden="true">
-      <path d="M23 15C16 3 4 4 6 14c1 6 9 8 17 3Zm2 0c7-12 19-11 17-1-1 6-9 8-17 3Z" fill="#f6c934" stroke="#dda816" strokeWidth="1.5" />
-      <path d="m20 18-7 13 11-6 1-10m4 3 7 13-11-6-1-10" fill="#f2bf27" stroke="#dda816" strokeWidth="1.5" strokeLinejoin="round" />
-      <ellipse cx="24" cy="16" rx="4.5" ry="4" fill="#ffe16a" stroke="#d99c12" strokeWidth="1.5" />
-    </svg>
-  );
+function fileNameFor(title: string) {
+  const base = title
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 48);
+  return base || 'carta-para-ti';
 }
 
-function FlowerField({ start, count }: { start: number; count: number }) {
-  const flowers = Array.from({ length: count }, (_, offset) => {
-    const index = start + offset;
-    const delay = (index % 12) * 0.07;
-    const size = 70 + ((index * 7) % 5) * 7;
-    const lean = ((index * 19) % 13) - 6;
-
-    return (
-      <div
-        className="meadow-flower"
-        key={index}
-        style={{
-          animationDelay: `${delay}s`,
-          transform: `rotate(${lean}deg)`,
-        }}
-      >
-        <svg className="meadow-stem" viewBox="0 0 120 190" aria-hidden="true">
-          <path
-            d="M60 57 C54 92 69 125 58 187"
-            fill="none"
-            stroke="#66824a"
-            strokeWidth="5"
-            strokeLinecap="round"
-          />
-          <path d="M58 127 C38 108 26 106 17 107 C27 124 41 132 59 136Z" fill="#819a5d" />
-          <path d="M62 151 C78 133 91 131 102 133 C92 149 78 157 61 160Z" fill="#718c51" />
-        </svg>
-        {index % 4 === 0 && (
-          <svg className="meadow-extra-foliage" viewBox="0 0 90 180" aria-hidden="true">
-            <path d="M45 178C39 139 47 108 45 48" fill="none" stroke="#6f9250" strokeWidth="3.5" strokeLinecap="round" />
-            <path d="M44 151C28 138 18 140 11 143C19 155 29 159 44 156Z" fill="#789a55" />
-            <path d="M45 137C61 123 73 124 81 128C74 141 63 147 46 144Z" fill="#88a760" />
-            <path d="M44 119C29 106 20 107 13 110C20 122 29 126 44 124Z" fill="#83a05a" />
-            <path d="M46 102C60 89 70 90 77 94C70 106 61 111 46 108Z" fill="#718e4d" />
-            <path d="M44 83C31 72 23 72 17 75C23 86 32 90 44 88Z" fill="#88a760" />
-            <path d="M46 66C57 56 65 57 71 60C65 70 57 74 46 72Z" fill="#789a55" />
-          </svg>
-        )}
-        <Flower className="meadow-blossom" size={size} delay={delay} />
-        {index % 5 === 2 && <YellowBow className="meadow-bow" />}
-      </div>
-    );
-  });
-
-  return (
-    <div className="flower-field" role="img" aria-label="Campo de flores amarillas y plantas verdes">
-      {flowers}
-    </div>
-  );
+function sharedLetterUrl(letter: LetterFields) {
+  const url = new URL(window.location.href);
+  url.searchParams.set('name', letter.name);
+  url.searchParams.set('title', letter.title);
+  url.searchParams.set('message', letter.message);
+  url.searchParams.set('signature', letter.signature);
+  return url.toString();
 }
 
-function Seal({ open }: { open: boolean }) {
-  return (
-    <div className={`flex h-14 w-14 items-center justify-center rounded-full border-2 border-[#9e5e35] bg-[#d97b56] text-[10px] font-bold uppercase tracking-[.17em] text-[#fff3d3] shadow-md transition-transform duration-500 ${open ? 'rotate-12 scale-90' : 'animate-stamp-pulse -rotate-6'}`}>
-      <span className="h-3 w-3 rounded-full border border-[#fff3d3] bg-[#f4c83f]" aria-hidden="true" />
-    </div>
-  );
-}
-
-function Letter() {
-  const letterRef = useRef<HTMLDivElement>(null);
+function PersonalizePanel({
+  open,
+  onClose,
+  form,
+}: {
+  open: boolean;
+  onClose: () => void;
+  form: UseFormReturn<LetterFields>;
+}) {
+  const panelRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    letterRef.current?.focus();
-  }, []);
+    if (!open) return undefined;
+
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const firstField = panelRef.current?.querySelector<HTMLElement>('input:not(:disabled), textarea:not(:disabled)');
+    firstField?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+
+      const focusable = panelRef.current?.querySelectorAll<HTMLElement>(
+        'input:not(:disabled), textarea:not(:disabled), button:not(:disabled)',
+      );
+      if (!focusable?.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      previousFocus?.focus();
+    };
+  }, [open, onClose]);
+
+  if (!open) return null;
 
   return (
-    <article
-      className="letter-unfold relative z-10 mx-auto max-w-[670px] rounded-[2px] bg-[#fff8e9] px-6 py-9 text-[#4c3928] shadow-[0_22px_55px_rgba(77,54,27,.18)] sm:px-12 sm:py-12"
-      tabIndex={-1}
-      ref={letterRef}
-      aria-label="Carta"
-      data-testid="letter-content"
+    <div
+      className="customizer-backdrop"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+      data-testid="letter-customizer-backdrop"
     >
-      <p className="mb-5 font-serif text-xl text-[#9e5e35] sm:text-2xl">{GIFT.greeting},</p>
-      <div className="space-y-5 font-serif text-[17px] leading-[1.8] text-[#5a432e] sm:text-[19px]">
-        {GIFT.message.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
-      </div>
-      <div className="mt-9 border-t border-[#e5c995] pt-6">
-        <p className="font-serif text-lg italic text-[#9e5e35]">{GIFT.closing}</p>
-        <p className="mt-4 font-serif text-base text-[#9c7147]">{GIFT.sender}</p>
-      </div>
-    </article>
-  );
-}
+      <aside
+        id="letter-customizer"
+        className="customizer-panel"
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="customizer-title"
+        data-testid="letter-customizer"
+      >
+        <header className="customizer-header">
+          <div>
+            <p className="customizer-kicker">UN DETALLE TUYO</p>
+            <h2 id="customizer-title">Personalizar carta</h2>
+          </div>
+          <button className="customizer-close" type="button" onClick={onClose} aria-label="Cerrar personalización" data-testid="button-close-customizer">
+            <X aria-hidden="true" />
+          </button>
+        </header>
+        <p className="customizer-description">Los cambios aparecen al instante en la carta.</p>
 
-function GiftScene() {
-  const [opened, setOpened] = useState(false);
+        <Form {...form}>
+          <form className="customizer-fields" onSubmit={(event) => event.preventDefault()}>
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem className="customizer-field">
+                  <FormLabel className="customizer-label">Nombre</FormLabel>
+                  <FormControl>
+                    <Input {...field} className="customizer-input" maxLength={80} placeholder="A quién va dirigida" data-testid="input-letter-name" />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem className="customizer-field">
+                  <FormLabel className="customizer-label">Título</FormLabel>
+                  <FormControl>
+                    <Input {...field} className="customizer-input" maxLength={90} placeholder="Un título para tu carta" data-testid="input-letter-title" />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="message"
+              render={({ field }) => (
+                <FormItem className="customizer-field">
+                  <FormLabel className="customizer-label">Mensaje</FormLabel>
+                  <FormControl>
+                    <Textarea {...field} className="customizer-input customizer-textarea" rows={9} maxLength={2_000} placeholder="Escribe tu mensaje" data-testid="input-letter-message" />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="signature"
+              render={({ field }) => (
+                <FormItem className="customizer-field">
+                  <FormLabel className="customizer-label">Firma</FormLabel>
+                  <FormControl>
+                    <Input {...field} className="customizer-input" maxLength={80} placeholder="Con cariño…" data-testid="input-letter-signature" />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </form>
+        </Form>
 
-  return (
-    <section className="letter-discovery" aria-label="Carta entre las flores">
-      {opened ? (
-        <Letter />
-      ) : (
-        <button
-          className="envelope-button"
-          onClick={() => setOpened(true)}
-          aria-label="Abrir la carta"
-          data-testid="button-open-letter"
-        >
-          <span className="envelope" aria-hidden="true">
-            <span className="envelope-flap" />
-            <span className="envelope-fold" />
-            <span className="envelope-seal"><Seal open={false} /></span>
-          </span>
+        <button className="customizer-done" type="button" onClick={onClose} data-testid="button-finish-customizing">
+          Listo
         </button>
-      )}
-    </section>
+      </aside>
+    </div>
   );
 }
 
 function Home() {
+  const form = useForm<LetterFields>({ defaultValues: getInitialLetter() });
+  const watchedLetter = form.watch();
+  const letter = { ...DEFAULT_LETTER, ...watchedLetter };
+  const letterRef = useRef<HTMLDivElement>(null);
+  const [opened, setOpened] = useState(true);
+  const [customizing, setCustomizing] = useState(false);
+  const [busy, setBusy] = useState<'png' | 'jpg' | 'pdf' | 'share' | null>(null);
+  const [announcement, setAnnouncement] = useState('');
+  const baseName = fileNameFor(letter.title);
+  const closeCustomizer = useCallback(() => setCustomizing(false), []);
+
+  async function downloadImage(format: 'png' | 'jpg') {
+    if (!letterRef.current || !opened) return;
+    setBusy(format);
+    setAnnouncement('');
+    try {
+      const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
+      const capture = await captureLetterCard(letterRef.current, mimeType);
+      downloadBlob(capture.blob, `${baseName}.${format}`);
+      setAnnouncement(`La carta se descargó como ${format.toUpperCase()}.`);
+    } catch (error) {
+      setAnnouncement(error instanceof Error ? error.message : 'No se pudo descargar la carta.');
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function downloadPdf() {
+    if (!letterRef.current || !opened) return;
+    setBusy('pdf');
+    setAnnouncement('');
+    try {
+      const capture = await captureLetterCard(letterRef.current, 'image/jpeg');
+      const pdf = await makeLetterPdf(
+        capture.blob,
+        capture.cssWidth,
+        capture.cssHeight,
+        capture.pixelWidth,
+        capture.pixelHeight,
+      );
+      downloadBlob(pdf, `${baseName}.pdf`);
+      setAnnouncement('La carta se descargó como PDF.');
+    } catch (error) {
+      setAnnouncement(error instanceof Error ? error.message : 'No se pudo crear el PDF.');
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function shareLetter() {
+    if (!letterRef.current || !opened) return;
+    setBusy('share');
+    setAnnouncement('');
+    const url = sharedLetterUrl(letter);
+    try {
+      const capture = await captureLetterCard(letterRef.current, 'image/png');
+      const file = new File([capture.blob], `${baseName}.png`, { type: 'image/png' });
+
+      if (navigator.share) {
+        try {
+          const canShareFile = navigator.canShare?.({ files: [file] }) ?? false;
+          await navigator.share({
+            title: letter.title || 'Una carta para ti',
+            text: letter.signature ? `Con cariño, ${letter.signature}` : 'Una carta para ti',
+            url,
+            ...(canShareFile ? { files: [file] } : {}),
+          });
+          setAnnouncement('La carta está lista para compartir.');
+          return;
+        } catch (error) {
+          if (error instanceof DOMException && error.name === 'AbortError') return;
+        }
+      }
+
+      downloadBlob(capture.blob, `${baseName}.png`);
+      if (navigator.clipboard?.writeText) {
+        try {
+          await navigator.clipboard.writeText(url);
+          setAnnouncement('La imagen se descargó y el enlace personalizado se copió.');
+        } catch {
+          setAnnouncement(`La imagen se descargó. Enlace para compartir: ${url}`);
+        }
+      } else {
+        setAnnouncement(`La imagen se descargó. Enlace para compartir: ${url}`);
+      }
+    } catch (error) {
+      setAnnouncement(error instanceof Error ? error.message : 'No se pudo preparar la carta para compartir.');
+    } finally {
+      setBusy(null);
+    }
+  }
+
   return (
-    <main className="flower-gift min-h-[100dvh] overflow-hidden">
-      <section className="flower-garden" aria-label="Flores amarillas">
-        <FlowerField start={0} count={36} />
+    <main className="romantic-experience" data-open={opened ? 'true' : 'false'}>
+      <FloralGarden open={opened} />
+      <section className="letter-stage" aria-label="Carta romántica rodeada de flores">
+        <div className="letter-composition">
+          <div
+            className={`letter-paper${opened ? ' letter-paper--open' : ' letter-paper--closed'}`}
+            ref={letterRef}
+            aria-label={opened ? 'Carta personalizada' : 'Carta cerrada'}
+            data-testid="letter-card"
+          >
+            {opened ? (
+              <article className="letter-copy">
+                {letter.name.trim() && (
+                  <p className="letter-recipient" data-testid="text-letter-name">
+                    Para {letter.name.trim()}
+                  </p>
+                )}
+                {letter.title.trim() && (
+                  <h1 className="letter-title" data-testid="text-letter-title">
+                    {letter.title.trim()}
+                  </h1>
+                )}
+                {letter.message.trim() && (
+                  <p className="letter-message" data-testid="text-letter-message">
+                    {letter.message.trim()}
+                  </p>
+                )}
+                {letter.signature.trim() && (
+                  <p className="letter-signature" data-testid="text-letter-signature">
+                    {letter.signature.trim()}
+                  </p>
+                )}
+              </article>
+            ) : (
+              <div className="letter-cover">
+                <svg className="cover-flower" viewBox="0 0 100 100" aria-hidden="true">
+                  <g fill="#e9b83b">
+                    <ellipse cx="50" cy="25" rx="8" ry="19" />
+                    <ellipse cx="50" cy="25" rx="8" ry="19" transform="rotate(45 50 50)" fill="#f4cd57" />
+                    <ellipse cx="50" cy="25" rx="8" ry="19" transform="rotate(90 50 50)" />
+                    <ellipse cx="50" cy="25" rx="8" ry="19" transform="rotate(135 50 50)" fill="#f4cd57" />
+                    <ellipse cx="50" cy="25" rx="8" ry="19" transform="rotate(180 50 50)" />
+                    <ellipse cx="50" cy="25" rx="8" ry="19" transform="rotate(225 50 50)" fill="#f4cd57" />
+                    <ellipse cx="50" cy="25" rx="8" ry="19" transform="rotate(270 50 50)" />
+                    <ellipse cx="50" cy="25" rx="8" ry="19" transform="rotate(315 50 50)" fill="#f4cd57" />
+                  </g>
+                  <circle cx="50" cy="50" r="10" fill="#af782d" />
+                  <path d="M50 60v24m0-12c-8-8-15-8-21-7 4 8 11 12 21 13m0-10c8-8 14-8 21-7-4 8-11 12-21 13" fill="none" stroke="#6b8b50" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <button className="letter-cover-open" type="button" onClick={() => setOpened(true)} data-testid="button-open-letter">
+                  Abrir carta
+                </button>
+              </div>
+            )}
+          </div>
+
+          <nav className="letter-actions" aria-label="Acciones de la carta">
+            <button className="letter-action letter-action--customize" type="button" onClick={() => setCustomizing(true)} aria-expanded={customizing} aria-controls="letter-customizer" data-testid="button-customize-letter">
+              <Pencil aria-hidden="true" />
+              <span>Personalizar</span>
+            </button>
+            <span className="letter-actions-divider" aria-hidden="true" />
+            <button className="letter-action" type="button" onClick={() => void downloadImage('png')} disabled={!opened || busy !== null} data-testid="button-download-png">
+              <FileImage aria-hidden="true" />
+              <span>{busy === 'png' ? 'Preparando…' : 'PNG'}</span>
+            </button>
+            <button className="letter-action" type="button" onClick={() => void downloadImage('jpg')} disabled={!opened || busy !== null} data-testid="button-download-jpg">
+              <ImageIcon aria-hidden="true" />
+              <span>{busy === 'jpg' ? 'Preparando…' : 'JPG'}</span>
+            </button>
+            <button className="letter-action" type="button" onClick={() => void downloadPdf()} disabled={!opened || busy !== null} data-testid="button-download-pdf">
+              <FileText aria-hidden="true" />
+              <span>{busy === 'pdf' ? 'Preparando…' : 'PDF'}</span>
+            </button>
+            <button className="letter-action letter-action--share" type="button" onClick={() => void shareLetter()} disabled={!opened || busy !== null} data-testid="button-share-letter">
+              <Share2 aria-hidden="true" />
+              <span>{busy === 'share' ? 'Preparando…' : 'Compartir'}</span>
+            </button>
+            <span className="letter-actions-divider letter-actions-divider--end" aria-hidden="true" />
+            <button className="letter-action letter-action--toggle" type="button" onClick={() => setOpened((current) => !current)} aria-label={opened ? 'Cerrar carta' : 'Abrir carta'} data-testid="button-toggle-letter">
+              <MailOpen aria-hidden="true" />
+              <span>{opened ? 'Cerrar' : 'Abrir'}</span>
+            </button>
+          </nav>
+          <p className="letter-notice" aria-live="polite" role="status" data-testid="status-letter-action">
+            {announcement}
+          </p>
+        </div>
       </section>
-      <GiftScene />
-      <section className="flower-garden flower-garden--lower" aria-label="Más flores amarillas">
-        <FlowerField start={36} count={36} />
-      </section>
+
       <footer className="gift-footer">Hecho para ti</footer>
+      <PersonalizePanel open={customizing} onClose={closeCustomizer} form={form} />
     </main>
   );
 }
